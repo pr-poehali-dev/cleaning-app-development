@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 
 interface Service {
@@ -24,7 +24,7 @@ const services: Service[] = [
   {
     id: '1',
     title: 'Генеральная уборка',
-    description: 'Комплексная уборка всех помещений с использованием профессиональных средств',
+    description: 'Комплексная уборка всех помещений',
     price: 'от 3500 ₽',
     icon: 'Home',
     features: ['Влажная уборка', 'Мытье окон', 'Чистка сантехники', 'Уборка кухни']
@@ -32,7 +32,7 @@ const services: Service[] = [
   {
     id: '2',
     title: 'Поддерживающая уборка',
-    description: 'Регулярная уборка для поддержания чистоты в помещении',
+    description: 'Регулярная уборка помещений',
     price: 'от 1800 ₽',
     icon: 'Sparkles',
     features: ['Пылесос', 'Протирка поверхностей', 'Вынос мусора', 'Мытье полов']
@@ -40,15 +40,15 @@ const services: Service[] = [
   {
     id: '3',
     title: 'Уборка после ремонта',
-    description: 'Профессиональная уборка помещений после строительных работ',
+    description: 'Профессиональная уборка после стройки',
     price: 'от 5000 ₽',
     icon: 'Hammer',
-    features: ['Удаление строительной пыли', 'Мытье окон', 'Чистка от краски', 'Генеральная уборка']
+    features: ['Удаление пыли', 'Мытье окон', 'Чистка от краски', 'Генеральная уборка']
   },
   {
     id: '4',
     title: 'Химчистка мебели',
-    description: 'Глубокая чистка мягкой мебели и текстиля профессиональным оборудованием',
+    description: 'Глубокая чистка мягкой мебели',
     price: 'от 2500 ₽',
     icon: 'Sofa',
     features: ['Диваны и кресла', 'Матрасы', 'Ковры', 'Удаление пятен']
@@ -56,265 +56,344 @@ const services: Service[] = [
   {
     id: '5',
     title: 'Мойка окон',
-    description: 'Профессиональная мойка окон с внутренней и внешней стороны',
+    description: 'Профессиональная мойка окон',
     price: 'от 150 ₽/м²',
     icon: 'Square',
-    features: ['Внутренняя мойка', 'Внешняя мойка', 'Рамы и подоконники', 'Без разводов']
+    features: ['Внутренняя мойка', 'Внешняя мойка', 'Рамы', 'Без разводов']
   },
   {
     id: '6',
     title: 'Офисная уборка',
-    description: 'Комплексная уборка офисных помещений с гибким графиком',
+    description: 'Комплексная уборка офисов',
     price: 'от 2000 ₽',
     icon: 'Building',
     features: ['Кабинеты', 'Переговорные', 'Кухня', 'Санузлы']
   }
 ];
 
-const reviews = [
+interface Order {
+  id: string;
+  service: string;
+  date: string;
+  time: string;
+  status: 'active' | 'completed' | 'cancelled';
+  price: string;
+  address: string;
+}
+
+const mockOrders: Order[] = [
   {
-    name: 'Анна Петрова',
-    rating: 5,
-    text: 'Отличный сервис! Клинеры приехали вовремя, работали очень аккуратно. Квартира сияет чистотой.',
-    date: '15 ноября 2024'
+    id: '1',
+    service: 'Генеральная уборка',
+    date: '28 ноября 2024',
+    time: '14:00',
+    status: 'active',
+    price: '3500 ₽',
+    address: 'ул. Примерная, д. 5, кв. 10'
   },
   {
-    name: 'Михаил Соколов',
-    rating: 5,
-    text: 'Заказывали уборку после ремонта. Справились на ура! Рекомендую всем.',
-    date: '10 ноября 2024'
+    id: '2',
+    service: 'Поддерживающая уборка',
+    date: '20 ноября 2024',
+    time: '10:00',
+    status: 'completed',
+    price: '1800 ₽',
+    address: 'ул. Примерная, д. 5, кв. 10'
   },
   {
-    name: 'Елена Иванова',
-    rating: 5,
-    text: 'Пользуемся услугами регулярно. Всегда качественно и профессионально. Спасибо!',
-    date: '5 ноября 2024'
+    id: '3',
+    service: 'Мойка окон',
+    date: '15 ноября 2024',
+    time: '12:00',
+    status: 'completed',
+    price: '2400 ₽',
+    address: 'ул. Примерная, д. 5, кв. 10'
   }
 ];
 
 const Index = () => {
+  const [activeScreen, setActiveScreen] = useState<'home' | 'orders' | 'services' | 'profile'>('home');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [activeTab, setActiveTab] = useState('services');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'completed': return 'bg-gray-400';
+      case 'cancelled': return 'bg-red-500';
+      default: return 'bg-gray-400';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active': return 'Активен';
+      case 'completed': return 'Завершен';
+      case 'cancelled': return 'Отменен';
+      default: return status;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-muted/30">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://cdn.poehali.dev/files/6f20e5ee-4a27-4425-aded-487ffb89724c.jpg" 
-                alt="Клик-Клин" 
-                className="h-10 w-auto object-contain"
-              />
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {activeScreen === 'home' && (
+        <div className="flex flex-col">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white px-4 pt-8 pb-6 rounded-b-3xl shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-blue-100 text-sm">Добро пожаловать!</p>
+                <h1 className="text-2xl font-bold">Анна</h1>
+              </div>
+              <Avatar className="h-12 w-12 border-2 border-white">
+                <AvatarFallback className="bg-blue-400 text-white">АП</AvatarFallback>
+              </Avatar>
             </div>
-            <nav className="hidden md:flex items-center gap-6">
-              <button onClick={() => setActiveTab('services')} className="text-foreground hover:text-primary transition-colors font-medium">
-                Услуги
-              </button>
-              <button onClick={() => setActiveTab('prices')} className="text-foreground hover:text-primary transition-colors font-medium">
-                Прайс
-              </button>
-              <button onClick={() => setActiveTab('reviews')} className="text-foreground hover:text-primary transition-colors font-medium">
-                Отзывы
-              </button>
-              <button onClick={() => setActiveTab('contacts')} className="text-foreground hover:text-primary transition-colors font-medium">
-                Контакты
-              </button>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="lg" className="shadow-lg hidden sm:flex">
-                    <Icon name="Calendar" size={18} className="mr-2" />
-                    Заказать
-                  </Button>
-                </DialogTrigger>
-                <DialogTrigger asChild>
-                  <Button size="icon" className="shadow-lg sm:hidden">
-                    <Icon name="Calendar" size={20} />
-                  </Button>
-                </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">Забронировать уборку</DialogTitle>
-                  <DialogDescription>
-                    Выберите удобную дату и время, мы свяжемся с вами для подтверждения
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 mt-4">
-                  <div>
-                    <Label>Выберите услугу</Label>
-                    <Select onValueChange={(value) => setSelectedService(services.find(s => s.id === value) || null)}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Выберите тип уборки" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map(service => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.title} - {service.price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Выберите дату</Label>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      disabled={(date) => date < new Date()}
-                      className="rounded-md border mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Время</Label>
-                    <Select>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Выберите время" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="09:00">09:00</SelectItem>
-                        <SelectItem value="10:00">10:00</SelectItem>
-                        <SelectItem value="11:00">11:00</SelectItem>
-                        <SelectItem value="12:00">12:00</SelectItem>
-                        <SelectItem value="14:00">14:00</SelectItem>
-                        <SelectItem value="15:00">15:00</SelectItem>
-                        <SelectItem value="16:00">16:00</SelectItem>
-                        <SelectItem value="17:00">17:00</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Ваше имя</Label>
-                      <Input placeholder="Введите имя" className="mt-2" />
-                    </div>
-                    <div>
-                      <Label>Телефон</Label>
-                      <Input placeholder="+7 (999) 999-99-99" className="mt-2" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Адрес</Label>
-                    <Input placeholder="Улица, дом, квартира" className="mt-2" />
-                  </div>
-
-                  <div>
-                    <Label>Комментарий</Label>
-                    <Textarea placeholder="Дополнительные пожелания..." className="mt-2" rows={3} />
-                  </div>
-
-                  <Button className="w-full" size="lg">
-                    <Icon name="Check" size={18} className="mr-2" />
-                    Подтвердить бронирование
-                  </Button>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/30 rounded-xl p-3">
+                  <Icon name="MapPin" size={24} />
                 </div>
-              </DialogContent>
-              </Dialog>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
-              </Button>
+                <div className="flex-1">
+                  <p className="text-xs text-blue-100">Ваш адрес</p>
+                  <p className="font-semibold">ул. Примерная, д. 5, кв. 10</p>
+                </div>
+                <Button variant="ghost" size="icon" className="text-white">
+                  <Icon name="ChevronRight" size={20} />
+                </Button>
+              </div>
             </div>
           </div>
-          {mobileMenuOpen && (
-            <nav className="md:hidden mt-4 pb-4 space-y-2 border-t pt-4">
-              <button 
-                onClick={() => { setActiveTab('services'); setMobileMenuOpen(false); }} 
-                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
-              >
-                Услуги
-              </button>
-              <button 
-                onClick={() => { setActiveTab('prices'); setMobileMenuOpen(false); }} 
-                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
-              >
-                Прайс
-              </button>
-              <button 
-                onClick={() => { setActiveTab('reviews'); setMobileMenuOpen(false); }} 
-                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
-              >
-                Отзывы
-              </button>
-              <button 
-                onClick={() => { setActiveTab('contacts'); setMobileMenuOpen(false); }} 
-                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
-              >
-                Контакты
-              </button>
-            </nav>
-          )}
-        </div>
-      </header>
 
-      <section className="py-20 bg-gradient-to-br from-primary/5 via-white to-primary/10">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center animate-fade-in">
-            <Badge className="mb-4 text-base px-4 py-1">Профессиональный клининг</Badge>
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 text-secondary leading-tight">
-              Чистота, которой можно доверять
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Профессиональные услуги уборки для вашего дома и офиса. Гарантируем качество и пунктуальность.
-            </p>
-            <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-xl hover:shadow-2xl transition-shadow w-full sm:w-auto">
-                    <Icon name="Calendar" size={20} className="mr-2" />
-                    Забронировать сейчас
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl">Забронировать уборку</DialogTitle>
-                    <DialogDescription>
-                      Выберите удобную дату и время
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-6 mt-4">
-                    <div>
-                      <Label>Выберите услугу</Label>
-                      <Select>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Выберите тип уборки" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {services.map(service => (
-                            <SelectItem key={service.id} value={service.id}>
-                              {service.title} - {service.price}
-                            </SelectItem>
+          <div className="px-4 -mt-6">
+            <Card className="shadow-xl border-0 mb-6">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Активный заказ</p>
+                    <p className="font-bold text-lg">Генеральная уборка</p>
+                    <p className="text-sm text-muted-foreground">28 ноября в 14:00</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-green-500 mb-2">В работе</Badge>
+                    <p className="font-bold text-lg text-primary">3500 ₽</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <h2 className="text-lg font-bold mb-4">Популярные услуги</h2>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {services.slice(0, 4).map((service) => (
+                <Dialog key={service.id}>
+                  <DialogTrigger asChild>
+                    <Card 
+                      className="cursor-pointer hover:shadow-lg transition-all active:scale-95 border-0 shadow-md"
+                      onClick={() => setSelectedService(service)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                          <Icon name={service.icon as any} className="text-primary" size={28} />
+                        </div>
+                        <p className="font-semibold text-sm mb-1">{service.title}</p>
+                        <p className="text-xs text-primary font-bold">{service.price}</p>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] rounded-3xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl">{service.title}</DialogTitle>
+                      <DialogDescription>{service.description}</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-2">
+                      <div>
+                        <p className="font-semibold mb-2">Что входит:</p>
+                        <div className="space-y-2">
+                          {service.features.map((feature, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <Icon name="Check" className="text-green-600" size={14} />
+                              </div>
+                              <span className="text-sm">{feature}</span>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Выберите дату</Label>
+                        </div>
+                      </div>
+                      <div className="bg-primary/5 rounded-2xl p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Стоимость</span>
+                          <span className="text-2xl font-bold text-primary">{service.price}</span>
+                        </div>
+                      </div>
                       <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         disabled={(date) => date < new Date()}
-                        className="rounded-md border mt-2"
+                        className="rounded-2xl border"
+                      />
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите время" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="09:00">09:00</SelectItem>
+                          <SelectItem value="10:00">10:00</SelectItem>
+                          <SelectItem value="11:00">11:00</SelectItem>
+                          <SelectItem value="12:00">12:00</SelectItem>
+                          <SelectItem value="14:00">14:00</SelectItem>
+                          <SelectItem value="15:00">15:00</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button className="w-full h-12 text-base rounded-2xl" size="lg">
+                        Забронировать
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ))}
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full mb-6 h-12 rounded-2xl"
+              onClick={() => setActiveScreen('services')}
+            >
+              Посмотреть все услуги
+              <Icon name="ArrowRight" size={18} className="ml-2" />
+            </Button>
+
+            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon name="Gift" className="text-white" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Приведи друга</p>
+                    <p className="text-sm text-muted-foreground">Получи скидку 500₽</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeScreen === 'orders' && (
+        <div className="flex flex-col h-full">
+          <div className="bg-white border-b px-4 py-4 sticky top-0 z-10">
+            <h1 className="text-xl font-bold">Мои заказы</h1>
+          </div>
+          <div className="flex-1 px-4 py-4 space-y-3">
+            {mockOrders.map((order) => (
+              <Card key={order.id} className="border-0 shadow-md">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold">{order.service}</p>
+                      <p className="text-sm text-muted-foreground">{order.date} в {order.time}</p>
+                    </div>
+                    <Badge className={getStatusColor(order.status)}>
+                      {getStatusText(order.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                    <Icon name="MapPin" size={16} />
+                    <p className="text-xs">{order.address}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <span className="font-bold text-lg text-primary">{order.price}</span>
+                    {order.status === 'active' && (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-xl">
+                          Отменить
+                        </Button>
+                        <Button size="sm" className="rounded-xl">
+                          Детали
+                        </Button>
+                      </div>
+                    )}
+                    {order.status === 'completed' && (
+                      <Button variant="outline" size="sm" className="rounded-xl">
+                        Повторить
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeScreen === 'services' && (
+        <div className="flex flex-col h-full">
+          <div className="bg-white border-b px-4 py-4 sticky top-0 z-10">
+            <h1 className="text-xl font-bold">Все услуги</h1>
+          </div>
+          <div className="flex-1 px-4 py-4 space-y-3">
+            {services.map((service) => (
+              <Dialog key={service.id}>
+                <DialogTrigger asChild>
+                  <Card 
+                    className="cursor-pointer hover:shadow-lg transition-all border-0 shadow-md"
+                    onClick={() => setSelectedService(service)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                          <Icon name={service.icon as any} className="text-primary" size={28} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold mb-1">{service.title}</p>
+                          <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
+                          <p className="text-lg font-bold text-primary">{service.price}</p>
+                        </div>
+                        <Icon name="ChevronRight" size={20} className="text-muted-foreground flex-shrink-0" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent className="max-w-[95vw] rounded-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl">{service.title}</DialogTitle>
+                    <DialogDescription>{service.description}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div>
+                      <p className="font-semibold mb-2">Что входит:</p>
+                      <div className="space-y-2">
+                        {service.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Icon name="Check" className="text-green-600" size={14} />
+                            </div>
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-primary/5 rounded-2xl p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Стоимость</span>
+                        <span className="text-2xl font-bold text-primary">{service.price}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="mb-2 block">Выберите дату</Label>
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => date < new Date()}
+                        className="rounded-2xl border"
                       />
                     </div>
                     <div>
-                      <Label>Время</Label>
+                      <Label className="mb-2 block">Выберите время</Label>
                       <Select>
-                        <SelectTrigger className="mt-2">
+                        <SelectTrigger>
                           <SelectValue placeholder="Выберите время" />
                         </SelectTrigger>
                         <SelectContent>
@@ -328,389 +407,170 @@ const Index = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Ваше имя</Label>
-                        <Input placeholder="Введите имя" className="mt-2" />
-                      </div>
-                      <div>
-                        <Label>Телефон</Label>
-                        <Input placeholder="+7 (999) 999-99-99" className="mt-2" />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Адрес</Label>
-                      <Input placeholder="Улица, дом, квартира" className="mt-2" />
-                    </div>
-                    <Button className="w-full" size="lg">
-                      Подтвердить бронирование
+                    <Button className="w-full h-12 text-base rounded-2xl" size="lg">
+                      Забронировать за {service.price}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto" onClick={() => setActiveTab('prices')}>
-                <Icon name="FileText" size={20} className="mr-2" />
-                Посмотреть цены
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-5xl mx-auto">
-            {[
-              { icon: 'Shield', title: 'Гарантия качества', desc: 'Повторная уборка бесплатно, если не устроит' },
-              { icon: 'Clock', title: 'Пунктуальность', desc: 'Приезжаем строго в назначенное время' },
-              { icon: 'Award', title: 'Опытные клинеры', desc: 'Все специалисты с опытом от 2 лет' }
-            ].map((item, idx) => (
-              <Card key={idx} className="border-2 hover:shadow-lg transition-all hover:-translate-y-1">
-                <CardContent className="pt-6 text-center">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Icon name={item.icon as any} className="text-primary" size={32} />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground">{item.desc}</p>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>
-      </section>
+      )}
 
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 mb-12">
-              <TabsTrigger value="services">Услуги</TabsTrigger>
-              <TabsTrigger value="prices">Прайс</TabsTrigger>
-              <TabsTrigger value="reviews">Отзывы</TabsTrigger>
-              <TabsTrigger value="contacts">Контакты</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="services" className="animate-fade-in">
-              <div className="max-w-6xl mx-auto">
-                <h3 className="text-3xl font-bold text-center mb-12">Наши услуги</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {services.map((service, idx) => (
-                    <Card key={service.id} className="hover:shadow-xl transition-all hover:-translate-y-1 animate-scale-in" style={{ animationDelay: `${idx * 100}ms` }}>
-                      <CardHeader>
-                        <div className="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                          <Icon name={service.icon as any} className="text-primary" size={28} />
-                        </div>
-                        <CardTitle className="text-xl">{service.title}</CardTitle>
-                        <CardDescription>{service.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3 mb-4">
-                          {service.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <Icon name="Check" className="text-primary" size={16} />
-                              <span className="text-sm">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between pt-4 border-t">
-                          <span className="text-2xl font-bold text-primary">{service.price}</span>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button onClick={() => setSelectedService(service)}>
-                                Заказать
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle className="text-2xl">{service.title}</DialogTitle>
-                                <DialogDescription>{service.description}</DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-6 mt-4">
-                                <div>
-                                  <Label>Выберите дату</Label>
-                                  <Calendar
-                                    mode="single"
-                                    selected={selectedDate}
-                                    onSelect={setSelectedDate}
-                                    disabled={(date) => date < new Date()}
-                                    className="rounded-md border mt-2"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Время</Label>
-                                  <Select>
-                                    <SelectTrigger className="mt-2">
-                                      <SelectValue placeholder="Выберите время" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="09:00">09:00</SelectItem>
-                                      <SelectItem value="10:00">10:00</SelectItem>
-                                      <SelectItem value="11:00">11:00</SelectItem>
-                                      <SelectItem value="12:00">12:00</SelectItem>
-                                      <SelectItem value="14:00">14:00</SelectItem>
-                                      <SelectItem value="15:00">15:00</SelectItem>
-                                      <SelectItem value="16:00">16:00</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Ваше имя</Label>
-                                    <Input placeholder="Введите имя" className="mt-2" />
-                                  </div>
-                                  <div>
-                                    <Label>Телефон</Label>
-                                    <Input placeholder="+7 (999) 999-99-99" className="mt-2" />
-                                  </div>
-                                </div>
-                                <div>
-                                  <Label>Адрес</Label>
-                                  <Input placeholder="Улица, дом, квартира" className="mt-2" />
-                                </div>
-                                <Button className="w-full" size="lg">
-                                  Подтвердить бронирование
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+      {activeScreen === 'profile' && (
+        <div className="flex flex-col h-full">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white px-4 pt-8 pb-12 rounded-b-3xl">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20 border-4 border-white">
+                <AvatarFallback className="bg-blue-400 text-white text-2xl">АП</AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">Анна Петрова</h1>
+                <p className="text-blue-100">+7 (999) 123-45-67</p>
               </div>
-            </TabsContent>
-
-            <TabsContent value="prices" className="animate-fade-in">
-              <div className="max-w-4xl mx-auto">
-                <h3 className="text-3xl font-bold text-center mb-12">Прайс-лист</h3>
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="divide-y">
-                      {services.map((service) => (
-                        <div key={service.id} className="p-6 hover:bg-muted/30 transition-colors">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex gap-4">
-                              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Icon name={service.icon as any} className="text-primary" size={24} />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-lg mb-1">{service.title}</h4>
-                                <p className="text-muted-foreground text-sm mb-2">{service.description}</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {service.features.map((feature, idx) => (
-                                    <Badge key={idx} variant="secondary" className="text-xs">
-                                      {feature}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-2xl font-bold text-primary mb-2">{service.price}</div>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" onClick={() => setSelectedService(service)}>
-                                    Заказать
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle className="text-2xl">{service.title}</DialogTitle>
-                                    <DialogDescription>{service.description}</DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-6 mt-4">
-                                    <Calendar
-                                      mode="single"
-                                      selected={selectedDate}
-                                      onSelect={setSelectedDate}
-                                      disabled={(date) => date < new Date()}
-                                      className="rounded-md border"
-                                    />
-                                    <div>
-                                      <Label>Время</Label>
-                                      <Select>
-                                        <SelectTrigger className="mt-2">
-                                          <SelectValue placeholder="Выберите время" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="09:00">09:00</SelectItem>
-                                          <SelectItem value="10:00">10:00</SelectItem>
-                                          <SelectItem value="11:00">11:00</SelectItem>
-                                          <SelectItem value="12:00">12:00</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div>
-                                        <Label>Ваше имя</Label>
-                                        <Input placeholder="Введите имя" className="mt-2" />
-                                      </div>
-                                      <div>
-                                        <Label>Телефон</Label>
-                                        <Input placeholder="+7 (999) 999-99-99" className="mt-2" />
-                                      </div>
-                                    </div>
-                                    <Button className="w-full" size="lg">
-                                      Подтвердить бронирование
-                                    </Button>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reviews" className="animate-fade-in">
-              <div className="max-w-4xl mx-auto">
-                <h3 className="text-3xl font-bold text-center mb-12">Отзывы наших клиентов</h3>
-                <div className="grid gap-6">
-                  {reviews.map((review, idx) => (
-                    <Card key={idx} className="hover:shadow-lg transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Icon name="User" className="text-primary" size={24} />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-bold">{review.name}</h4>
-                              <div className="flex gap-1">
-                                {Array.from({ length: review.rating }).map((_, i) => (
-                                  <Icon key={i} name="Star" className="text-yellow-500 fill-yellow-500" size={16} />
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-muted-foreground mb-2">{review.text}</p>
-                            <span className="text-sm text-muted-foreground">{review.date}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="contacts" className="animate-fade-in">
-              <div className="max-w-4xl mx-auto">
-                <h3 className="text-3xl font-bold text-center mb-12">Свяжитесь с нами</h3>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Контактная информация</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon name="Phone" className="text-primary" size={20} />
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Телефон</div>
-                          <div className="font-semibold">+7 (999) 123-45-67</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon name="Mail" className="text-primary" size={20} />
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Email</div>
-                          <div className="font-semibold">info@kliiningpro.ru</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon name="MapPin" className="text-primary" size={20} />
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Адрес</div>
-                          <div className="font-semibold">Москва, ул. Примерная, д. 1</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon name="Clock" className="text-primary" size={20} />
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Режим работы</div>
-                          <div className="font-semibold">Ежедневно с 8:00 до 22:00</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Напишите нам</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <form className="space-y-4">
-                        <div>
-                          <Label>Ваше имя</Label>
-                          <Input placeholder="Введите имя" className="mt-2" />
-                        </div>
-                        <div>
-                          <Label>Телефон</Label>
-                          <Input placeholder="+7 (999) 999-99-99" className="mt-2" />
-                        </div>
-                        <div>
-                          <Label>Сообщение</Label>
-                          <Textarea placeholder="Ваше сообщение..." className="mt-2" rows={4} />
-                        </div>
-                        <Button className="w-full">
-                          <Icon name="Send" size={18} className="mr-2" />
-                          Отправить
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      <footer className="bg-secondary text-white py-12 mt-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <div className="mb-4">
-                <img 
-                  src="https://cdn.poehali.dev/files/6f20e5ee-4a27-4425-aded-487ffb89724c.jpg" 
-                  alt="Клик-Клин" 
-                  className="h-12 w-auto object-contain bg-white rounded-lg p-2"
-                />
-              </div>
-              <p className="text-white/80">
-                Профессиональные услуги клининга для вашего комфорта
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Быстрые ссылки</h4>
-              <ul className="space-y-2 text-white/80">
-                <li><button onClick={() => setActiveTab('services')} className="hover:text-white transition-colors">Услуги</button></li>
-                <li><button onClick={() => setActiveTab('prices')} className="hover:text-white transition-colors">Прайс</button></li>
-                <li><button onClick={() => setActiveTab('reviews')} className="hover:text-white transition-colors">Отзывы</button></li>
-                <li><button onClick={() => setActiveTab('contacts')} className="hover:text-white transition-colors">Контакты</button></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Контакты</h4>
-              <ul className="space-y-2 text-white/80">
-                <li>+7 (999) 123-45-67</li>
-                <li>info@kliiningpro.ru</li>
-                <li>Ежедневно с 8:00 до 22:00</li>
-              </ul>
             </div>
           </div>
-          <div className="border-t border-white/20 pt-8 text-center text-white/60">
-            <p>© 2024 Клик-Клин. Все права защищены.</p>
+
+          <div className="px-4 -mt-6 pb-4 space-y-3">
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Icon name="MapPin" className="text-blue-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Мои адреса</p>
+                    <p className="text-sm text-muted-foreground">Управление адресами</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Icon name="Gift" className="text-green-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Бонусы и промокоды</p>
+                    <p className="text-sm text-muted-foreground">0 бонусов</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Icon name="CreditCard" className="text-purple-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Способы оплаты</p>
+                    <p className="text-sm text-muted-foreground">Добавить карту</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <Icon name="Bell" className="text-orange-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Уведомления</p>
+                    <p className="text-sm text-muted-foreground">Настройки</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <Icon name="HelpCircle" className="text-gray-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Помощь</p>
+                    <p className="text-sm text-muted-foreground">Центр поддержки</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-0">
+                <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <Icon name="Settings" className="text-gray-600" size={20} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold">Настройки</p>
+                    <p className="text-sm text-muted-foreground">Приложение</p>
+                  </div>
+                  <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Button variant="outline" className="w-full h-12 rounded-2xl text-red-600 border-red-200 hover:bg-red-50 mt-6">
+              <Icon name="LogOut" size={18} className="mr-2" />
+              Выйти
+            </Button>
           </div>
         </div>
-      </footer>
+      )}
+
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="flex items-center justify-around h-16">
+          <button
+            onClick={() => setActiveScreen('home')}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              activeScreen === 'home' ? 'text-primary' : 'text-gray-400'
+            }`}
+          >
+            <Icon name="Home" size={24} />
+            <span className="text-xs mt-1 font-medium">Главная</span>
+          </button>
+          <button
+            onClick={() => setActiveScreen('services')}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              activeScreen === 'services' ? 'text-primary' : 'text-gray-400'
+            }`}
+          >
+            <Icon name="Grid3x3" size={24} />
+            <span className="text-xs mt-1 font-medium">Услуги</span>
+          </button>
+          <button
+            onClick={() => setActiveScreen('orders')}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              activeScreen === 'orders' ? 'text-primary' : 'text-gray-400'
+            }`}
+          >
+            <Icon name="ClipboardList" size={24} />
+            <span className="text-xs mt-1 font-medium">Заказы</span>
+          </button>
+          <button
+            onClick={() => setActiveScreen('profile')}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              activeScreen === 'profile' ? 'text-primary' : 'text-gray-400'
+            }`}
+          >
+            <Icon name="User" size={24} />
+            <span className="text-xs mt-1 font-medium">Профиль</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };
