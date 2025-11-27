@@ -96,17 +96,19 @@ const Index = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [activeTab, setActiveTab] = useState('services');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-muted/30">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Icon name="Sparkles" className="text-white" size={24} />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary">КлинингПро</h1>
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://cdn.poehali.dev/files/6f20e5ee-4a27-4425-aded-487ffb89724c.jpg" 
+                alt="Клик-Клин" 
+                className="h-10 w-auto object-contain"
+              />
             </div>
             <nav className="hidden md:flex items-center gap-6">
               <button onClick={() => setActiveTab('services')} className="text-foreground hover:text-primary transition-colors font-medium">
@@ -122,13 +124,19 @@ const Index = () => {
                 Контакты
               </button>
             </nav>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="lg" className="shadow-lg">
-                  <Icon name="Calendar" size={18} className="mr-2" />
-                  Заказать уборку
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="shadow-lg hidden sm:flex">
+                    <Icon name="Calendar" size={18} className="mr-2" />
+                    Заказать
+                  </Button>
+                </DialogTrigger>
+                <DialogTrigger asChild>
+                  <Button size="icon" className="shadow-lg sm:hidden">
+                    <Icon name="Calendar" size={20} />
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-2xl">Забронировать уборку</DialogTitle>
@@ -210,8 +218,45 @@ const Index = () => {
                   </Button>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
+              </Button>
+            </div>
           </div>
+          {mobileMenuOpen && (
+            <nav className="md:hidden mt-4 pb-4 space-y-2 border-t pt-4">
+              <button 
+                onClick={() => { setActiveTab('services'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
+              >
+                Услуги
+              </button>
+              <button 
+                onClick={() => { setActiveTab('prices'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
+              >
+                Прайс
+              </button>
+              <button 
+                onClick={() => { setActiveTab('reviews'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
+              >
+                Отзывы
+              </button>
+              <button 
+                onClick={() => { setActiveTab('contacts'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left px-4 py-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors font-medium"
+              >
+                Контакты
+              </button>
+            </nav>
+          )}
         </div>
       </header>
 
@@ -225,10 +270,10 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Профессиональные услуги уборки для вашего дома и офиса. Гарантируем качество и пунктуальность.
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-shadow">
+                  <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-xl hover:shadow-2xl transition-shadow w-full sm:w-auto">
                     <Icon name="Calendar" size={20} className="mr-2" />
                     Забронировать сейчас
                   </Button>
@@ -303,7 +348,7 @@ const Index = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={() => setActiveTab('prices')}>
+              <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto" onClick={() => setActiveTab('prices')}>
                 <Icon name="FileText" size={20} className="mr-2" />
                 Посмотреть цены
               </Button>
@@ -632,11 +677,12 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <Icon name="Sparkles" className="text-white" size={24} />
-                </div>
-                <h3 className="text-xl font-bold">КлинингПро</h3>
+              <div className="mb-4">
+                <img 
+                  src="https://cdn.poehali.dev/files/6f20e5ee-4a27-4425-aded-487ffb89724c.jpg" 
+                  alt="Клик-Клин" 
+                  className="h-12 w-auto object-contain bg-white rounded-lg p-2"
+                />
               </div>
               <p className="text-white/80">
                 Профессиональные услуги клининга для вашего комфорта
@@ -661,7 +707,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-white/20 pt-8 text-center text-white/60">
-            <p>© 2024 КлинингПро. Все права защищены.</p>
+            <p>© 2024 Клик-Клин. Все права защищены.</p>
           </div>
         </div>
       </footer>
